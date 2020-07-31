@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30309.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPF_Cal2_Core", "WPF_Cal2_Core\WPF_Cal2_Core.csproj", "{C42FF302-6DCB-4660-88A6-BD5D60812078}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSL_Cal2_Core", "CSL_Cal2_Core\CSL_Cal2_Core.csproj", "{16B06CEB-430F-4128-8E68-224C74C23024}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C42FF302-6DCB-4660-88A6-BD5D60812078}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C42FF302-6DCB-4660-88A6-BD5D60812078}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C42FF302-6DCB-4660-88A6-BD5D60812078}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C42FF302-6DCB-4660-88A6-BD5D60812078}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16B06CEB-430F-4128-8E68-224C74C23024}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16B06CEB-430F-4128-8E68-224C74C23024}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16B06CEB-430F-4128-8E68-224C74C23024}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16B06CEB-430F-4128-8E68-224C74C23024}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F285E7D7-2961-4921-A3EF-6354ED8FD9F0}
+	EndGlobalSection
+EndGlobal
