@@ -243,20 +243,20 @@ namespace CSL_Cal2_Core
             // 年間の祝日設定
             HolidayList = Holiday.GetHolidayList( Year );
 
-            // 振替休日の設定
-            Holiday.SetSubHoliday( HolidayList );
-
-            // 国民の休日設定
-            Holiday.SetExHoliday( HolidayList );
-
             // リストファイル読み出し
             List<OffDayInfo> OffdayReadFileList = ReadOffdayFile();
 
             // 祝日情報抽出
             List<OffDayInfo> FileHolidayList = ExtractHoliday( OffdayReadFileList );
 
-            // 祝日差異判定 備考の設定などあれば、ファイル情報を優先する
-            HolidayList = HolidayCompare( HolidayList, OffdayReadFileList );
+            // 祝日差異判定 自動で出力するデフォルト祝日にない設定があれば反映する
+            HolidayList = HolidayCompare( HolidayList, FileHolidayList );
+
+            // 振替休日の設定
+            Holiday.SetSubHoliday( HolidayList );
+
+            // 国民の休日設定
+            Holiday.SetExHoliday( HolidayList );
 
             // 祝日情報を休暇リストへ反映
             foreach ( OffDayInfo offday in HolidayList )
@@ -614,14 +614,7 @@ namespace CSL_Cal2_Core
             {
                 if ( false == File.Exists( FileName ) )
                 {
-                    using ( StreamWriter sw = new StreamWriter( FileName, false, Encoding.Default ) )
-                    {
-                        sw.WriteLine( "# [年],[月],[日],[休暇タイプ],[休暇名称],[備考]" );
-                        sw.WriteLine( "# 休暇タイプ：" );
-                        sw.WriteLine( "#   1：祝日" );
-                        sw.WriteLine( "#   2：振替休日" );
-                        sw.WriteLine( "#   3：個人的な休暇" );
-                    }
+                    return lst;
                 }
 
                 sr = new StreamReader( FileName, Encoding.Default );
@@ -675,6 +668,14 @@ namespace CSL_Cal2_Core
             // なければファイルを作成する
             using ( StreamWriter sw = new StreamWriter( FileName, false, Encoding.Default ) )
             {
+                // メモを書き出す
+                sw.WriteLine( "# [年],[月],[日],[休暇タイプ],[休暇名称],[備考]" );
+                sw.WriteLine( "# 休暇タイプ：" );
+                sw.WriteLine( "#   1：祝日" );
+                sw.WriteLine( "#   2：振替休日" );
+                sw.WriteLine( "#   3：個人的な休暇" );
+                sw.WriteLine( "" );
+
                 // リストの内容を書き出す
                 if ( 0 == lst.Count )
                 {
@@ -754,7 +755,7 @@ namespace CSL_Cal2_Core
             List<OffDayInfo> offdayList = new List<OffDayInfo>();
 
             offdayList = lst.Where( 
-                ( x ) => x.OffDayType == enmOffDayType.Holiday || x.OffDayType == enmOffDayType.SubHoliday || x.OffDayType == enmOffDayType.ExHoliday
+                ( x ) => x.OffDayType == enmOffDayType.Holiday
                 ).ToList();
 
             return offdayList;
@@ -793,10 +794,10 @@ namespace CSL_Cal2_Core
         }
         #endregion リストから通常日情報読み出し
 
-        #region 祝日の備考差異確認
+        #region 祝日の差異確認
 
         /// <summary>
-        /// 祝日の備考差異確認
+        /// 祝日の差異確認
         /// </summary>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
@@ -805,6 +806,7 @@ namespace CSL_Cal2_Core
         {
             List<OffDayInfo> ret = new List<OffDayInfo>();
 
+            // 備考の反映
             foreach ( OffDayInfo t1Offday in t1 )
             {
                 if ( Holiday.isExistOffday( t2, t1Offday ) )
@@ -827,10 +829,24 @@ namespace CSL_Cal2_Core
                 }
             }
 
+            // 追加された祝日の繁栄
+            foreach ( OffDayInfo t2Offday in t2 )
+            {
+                if ( Holiday.isExistOffday( t1, t2Offday ) == false )
+                {
+                    // 追加の祝日がある場合
+                    if ( Holiday.isExistOffday( ret, t2Offday ) == false )
+                    {
+                        // 祝日を追加
+                        ret.Add( t2Offday );
+                    }
+                }
+            }
+
             return ret;
         }
 
-        #endregion 祝日の備考差異確認
+        #endregion 祝日の差異確認
 
     }
 
@@ -1146,6 +1162,12 @@ namespace CSL_Cal2_Core
 
             // [こどもの日] 5月5日
             lst.Add( new OffDayInfo( Year, 5, 5, enmOffDayType.Holiday, "こどもの日" ) );
+
+            if (Year == 2019)
+            {
+                // 天皇の即位
+                lst.Add( new OffDayInfo( Year, 5, 1, enmOffDayType.Holiday, "天皇の即位" ) );
+            }
         }
 
         /// <summary>
@@ -1239,6 +1261,12 @@ namespace CSL_Cal2_Core
             int MonFirstWDay = Convert.ToInt32( new DateTime( Year, 10, 1 ).DayOfWeek );
             int Day = 1 + ( ( 8 - MonFirstWDay ) % 7 ) + ( 7 * 1 );
             lst.Add( new OffDayInfo( Year, 10, Day, enmOffDayType.Holiday, OffdayName ) );
+
+            if (Year == 2019)
+            {
+                // 即位礼正殿の儀
+                lst.Add( new OffDayInfo( Year, 10, 22, enmOffDayType.Holiday, "即位礼正殿の儀" ) );
+            }
         }
 
         /// <summary>

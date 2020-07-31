@@ -7,6 +7,7 @@ using Reactive.Bindings;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace WPF_Cal2_Core
 {
@@ -140,22 +141,22 @@ namespace WPF_Cal2_Core
         /// <summary>
         /// 年月表示
         /// </summary>
-        public DateTextClass DateText { get; private set; }
+        public DateTextProperty DateText { get; private set; }
 
         /// <summary>
         /// 曜日表示
         /// </summary>
-        public YoubiLine Youbi { get; private set; }
+        public YoubiLineProperty Youbi { get; private set; }
 
         /// <summary>
         /// 日表示
         /// </summary>
-        public DayLine Days { get; private set; }
+        public DayLineProperty Days { get; private set; }
 
         /// <summary>
         /// 休暇情報
         /// </summary>
-        public OffdayNameBiko NameBiko { get; private set; }
+        public OffdayNameBikoProperty NameBiko { get; private set; }
 
         /// <summary>
         /// 週ごとの日種別情報
@@ -199,10 +200,10 @@ namespace WPF_Cal2_Core
                 DayTypeInfo[ i ] = new CSL_Cal2_Core.DayWeekData( calData.DayTypeInfo[ i ].GetDays() );
             }
 
-            DateText = new DateTextClass();
-            Youbi = new YoubiLine();
-            Days = new DayLine( calData );
-            NameBiko = new OffdayNameBiko();
+            DateText = new DateTextProperty();
+            Youbi = new YoubiLineProperty();
+            Days = new DayLineProperty( calData );
+            NameBiko = new OffdayNameBikoProperty();
 
             OffdayList = new List<CSL_Cal2_Core.OffDayInfo>();
         }
@@ -213,7 +214,7 @@ namespace WPF_Cal2_Core
         public void CreateViewData()
         {
             // 年月表示
-            DateText.DateTextInfo.Value = GetDateString();
+            DateText.DateText.Value = GetDateString();
 
             // 曜日表示
             SetYoubi();
@@ -228,7 +229,7 @@ namespace WPF_Cal2_Core
         // 年月表示設定
         public string GetDateString()
         {
-            return Year.ToString() + "/" + Mon.ToString();
+            return string.Format( "{0:0000}/{1:00}", Year, Mon );
         }
 
         // 曜日表示設定
@@ -264,8 +265,8 @@ namespace WPF_Cal2_Core
             if ( lst.Count > 0 )
             {
                 // 休暇日が存在する場合、休暇情報を更新する
-                NameBiko.DayName.Value = lst[ 0 ].OffDayName;
-                NameBiko.DayBiko.Value = lst[ 0 ].Biko;
+                NameBiko.Name.Value = lst[ 0 ].OffDayName;
+                NameBiko.Biko.Value = lst[ 0 ].Biko;
                 ret = true;
             }
             else
@@ -302,23 +303,29 @@ namespace WPF_Cal2_Core
 
             return true;
         }
+
+        // 年月テキスト手動変更時
+        public bool DateTextChanged( string text )
+        {
+            return Regex.IsMatch( text, @"\d{4}/\d{1,2}" );
+        }
     }
 
 
     // 年月表示
-    public class DateTextClass
+    public class DateTextProperty
     {
-        public ReactiveProperty<string> DateTextInfo { get; set; }
+        public ReactiveProperty<string> DateText { get; set; }
 
-        public DateTextClass()
+        public DateTextProperty()
         {
-            DateTextInfo = new ReactiveProperty<string>();
+            DateText = new ReactiveProperty<string>();
         }
     }
 
 
     // 週間表示
-    public class WeekLine
+    public class WeekLineProperty
     {
         public ReactiveProperty<string> WD0 { get; private set; }
         public ReactiveProperty<string> WD1 { get; private set; }
@@ -328,7 +335,7 @@ namespace WPF_Cal2_Core
         public ReactiveProperty<string> WD5 { get; private set; }
         public ReactiveProperty<string> WD6 { get; private set; }
 
-        public WeekLine()
+        public WeekLineProperty()
         {
             WD0 = new ReactiveProperty<string>();
             WD1 = new ReactiveProperty<string>();
@@ -352,48 +359,48 @@ namespace WPF_Cal2_Core
     }
 
     // 曜日表示
-    public class YoubiLine
+    public class YoubiLineProperty
     {
-        public WeekLine[] YoubiLineInfo { get; set; }
+        public WeekLineProperty[] YoubiLineInfo { get; set; }
 
-        public YoubiLine()
+        public YoubiLineProperty()
         {
-            this.YoubiLineInfo = new WeekLine[ 1 ];
-            this.YoubiLineInfo[ 0 ] = new WeekLine();
+            this.YoubiLineInfo = new WeekLineProperty[ 1 ];
+            this.YoubiLineInfo[ 0 ] = new WeekLineProperty();
         }
     }
 
     // 日表示
-    public class DayLine
+    public class DayLineProperty
     {
-        public WeekLine[] WeekDays { get; set; }
+        public WeekLineProperty[] WeekDays { get; set; }
 
-        public DayLine( CSL_Cal2_Core.CalData calData )
+        public DayLineProperty( CSL_Cal2_Core.CalData calData )
         {
-            WeekDays = new WeekLine[ calData.MonWeeks ];
+            WeekDays = new WeekLineProperty[ calData.MonWeeks ];
             for ( int i = 0; i < calData.MonWeeks; i++ )
             {
-                WeekDays[ i ] = new WeekLine();
+                WeekDays[ i ] = new WeekLineProperty();
             }
         }
     }
 
     // 休暇情報
-    public class OffdayNameBiko
+    public class OffdayNameBikoProperty
     {
-        public ReactiveProperty<string> DayName { get; set; }
-        public ReactiveProperty<string> DayBiko { get; set; }
+        public ReactiveProperty<string> Name { get; set; }
+        public ReactiveProperty<string> Biko { get; set; }
 
-        public OffdayNameBiko()
+        public OffdayNameBikoProperty()
         {
-            DayName = new ReactiveProperty<string>();
-            DayBiko = new ReactiveProperty<string>();
+            Name = new ReactiveProperty<string>();
+            Biko = new ReactiveProperty<string>();
         }
 
         public void Clear()
         {
-            DayName.Value = "";
-            DayBiko.Value = "";
+            Name.Value = "";
+            Biko.Value = "";
         }
     }
 }

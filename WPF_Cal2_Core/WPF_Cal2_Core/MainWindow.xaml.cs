@@ -25,6 +25,8 @@ namespace WPF_Cal2_Core
         private int ViewMon;
         private bool ViewUpdateComplete;
 
+        private bool EventGuard = false;
+
         private static readonly double DefaultWindowHeight = 350.0;
         private static readonly double DefaultOffdayNameHeight = 20.0;
         private static readonly double DefaultBikoHeight = 50.0;
@@ -48,6 +50,20 @@ namespace WPF_Cal2_Core
         }
 
         /// <summary>
+        /// カレンダー情報作成
+        /// </summary>
+        private void CreateCal()
+        {
+            cal = new WPF_Cal( ViewYear, ViewMon, BaseDay );
+
+            // カレンダー表示用データ作成
+            cal.CreateViewData();
+
+            // 年月表示割り当て
+            tb_DateText.DataContext = cal.DateText;
+        }
+
+        /// <summary>
         /// 描画更新
         /// </summary>
         /// <param name="year"></param>
@@ -56,20 +72,12 @@ namespace WPF_Cal2_Core
         //private async Task CalenderView()
         private void CalenderView()
         {
-            ViewUpdateComplete = false;
-
-            cal = new WPF_Cal( ViewYear, ViewMon, BaseDay );
-
             dg_Cal.LayoutUpdated += dg_Cal_LayoutUpdated;
 
-            // 年月表示割り当て
-            tb_DateText.DataContext = cal.DateText;
+            ViewUpdateComplete = false;
 
             // 曜日表示割り当て
             dg_Youbi.ItemsSource = cal.Youbi.YoubiLineInfo;
-
-            // カレンダー表示用データ作成
-            cal.CreateViewData();
 
             // カレンダーデータ割り当て
             dg_Cal.ItemsSource = cal.Days.WeekDays;
@@ -226,7 +234,9 @@ namespace WPF_Cal2_Core
             return dgCell;
         }
 
-
+        /// <summary>
+        /// 休暇名称・備考欄表示設定
+        /// </summary>
         private void SetNameBikoVisible()
         {
             double NameHeight = 1.0;
@@ -236,13 +246,13 @@ namespace WPF_Cal2_Core
             tb_Name.Visibility = Visibility.Hidden;
             tb_Biko.Visibility = Visibility.Hidden;
 
-            if ( !string.IsNullOrEmpty( cal.NameBiko.DayName.Value ) )
+            if ( !string.IsNullOrEmpty( cal.NameBiko.Name.Value ) )
             {
                 NameHeight = DefaultOffdayNameHeight;
                 tb_Name.Visibility = Visibility.Visible;
             }
 
-            if (!string.IsNullOrEmpty(cal.NameBiko.DayBiko.Value))
+            if (!string.IsNullOrEmpty(cal.NameBiko.Biko.Value))
             {
                 BikoHeight = DefaultBikoHeight;
                 tb_Biko.Visibility = Visibility.Visible;
@@ -290,12 +300,17 @@ namespace WPF_Cal2_Core
         /// <param name="e"></param>
         private void Window_Loaded( object sender, RoutedEventArgs e )
         {
+            EventGuard = true;
+
             // カレンダー用グリッド初期化
             // 空白の配列を割り当てることで、データグリッド上にセルを作成する
             CalInit();
 
             // 初回描画
+            CreateCal();
             CalenderView();
+
+            EventGuard = false;
         }
 
         /// <summary>
@@ -327,7 +342,13 @@ namespace WPF_Cal2_Core
                 ViewYear--;
             }
 
+            EventGuard = true;
+
+            // 再描画
+            CreateCal();
             CalenderView();
+
+            EventGuard = false;
         }
 
         /// <summary>
@@ -345,7 +366,13 @@ namespace WPF_Cal2_Core
                 ViewYear++;
             }
 
+            EventGuard = true;
+
+            // 再描画
+            CreateCal();
             CalenderView();
+
+            EventGuard = false;
         }
 
         /// <summary>
@@ -358,16 +385,6 @@ namespace WPF_Cal2_Core
             if ( e.OriginalSource.GetType() == typeof( DataGridCell ) )
             {
                 DataGridCell cell = e.OriginalSource as DataGridCell;
-
-                //if ( cal.CellClick( cell ) )
-                //{
-                //    // 休暇情報が更新された場合
-                //    SetNameBikoVisible( true );
-                //}
-                //else
-                //{
-                //    SetNameBikoVisible( false );
-                //}
 
                 cal.CellClick( cell );
                 SetNameBikoVisible();
@@ -392,7 +409,7 @@ namespace WPF_Cal2_Core
                 {
                     cell = elem.TemplatedParent as DataGridCell;
                 }
-                if ( null == cell )
+                if ( null != cell )
                 {
                     return;
                 }
@@ -404,17 +421,59 @@ namespace WPF_Cal2_Core
                 // ダブルクリック時処理
                 if ( cal.CellDoubleClick( cell ) )
                 {
-                    // 画面更新
+                    EventGuard = true;
+
+                    // 再描画
+                    CreateCal();
                     CalenderView();
-                    
+
                     // データグリッドをフォーカス
                     dg_Cal.Focus();
 
                     // データグリッドのカレントセルを指定する
                     DataGridCellInfo cellInfo = new DataGridCellInfo( dg_Cal.Items[ row ], dg_Cal.Columns[ col ] );
                     dg_Cal.CurrentCell = cellInfo;
+
+                    EventGuard = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// 年月手動変更時イベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tb_DateText_TextChanged( object sender, TextChangedEventArgs e )
+        {
+            if ( EventGuard )
+            {
+                return;
+            }
+            bool EventGuard_tmp = EventGuard;
+            EventGuard = true;
+
+            tb_DateText.TextChanged -= tb_DateText_TextChanged;
+
+            string text = ( sender as TextBox ).Text;
+            // 手動変更時処理
+            if ( cal.DateTextChanged( text ) )
+            {
+                string[] words = text.Split( '/' );
+                int year = 0;
+                int mon = 0;
+                Int32.TryParse( words[ 0 ], out year );
+                Int32.TryParse( words[ 1 ], out mon );
+                ViewYear = year;
+                ViewMon = mon;
+
+                // 再描画
+                CreateCal();
+                CalenderView();
+            }
+
+            EventGuard = EventGuard_tmp;
+            tb_DateText.TextChanged += tb_DateText_TextChanged;
         }
     }
 }

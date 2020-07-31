@@ -70,7 +70,7 @@
 
             <!-- 年月表示 -->
             <TextBox x:Name="tb_DateText" MinWidth="40" Height="24" BorderThickness="0,0,0,0" FontSize="16"
-                      Text="{Binding DateTextInfo.Value}" />
+                      Text="{Binding DateText.Value}" TextChanged="tb_DateText_TextChanged" />
 
             <!-- ボタン -->
             <Button Width="15" Height="20" Content="&gt;" Click="right_Button_Click" />
@@ -152,13 +152,13 @@
 
         <!-- 休暇名称表示 -->
         <TextBox Grid.Column="1" Grid.Row="6" Grid.ColumnSpan="4"
-               x:Name="tb_Name" Text="{Binding DayName.Value}"
+               x:Name="tb_Name" Text="{Binding Name.Value}"
                FontSize="14" IsReadOnly="True" BorderThickness="0,0,0,0"
                />
 
         <!-- 備考表示 -->
         <TextBox Grid.Column="1" Grid.Row="7" Grid.ColumnSpan="7"
-                 x:Name="tb_Biko" Text="{Binding DayBiko.Value}"
+                 x:Name="tb_Biko" Text="{Binding Biko.Value}"
                  FontSize="12" IsReadOnly="True" BorderThickness="1,1,1,1" TextWrapping="Wrap"
                  />
 
