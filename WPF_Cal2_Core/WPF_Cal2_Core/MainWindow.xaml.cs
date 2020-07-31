@@ -409,7 +409,7 @@ namespace WPF_Cal2_Core
                 {
                     cell = elem.TemplatedParent as DataGridCell;
                 }
-                if ( null != cell )
+                if ( null == cell )
                 {
                     return;
                 }
